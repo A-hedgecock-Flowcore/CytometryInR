@@ -1,0 +1,136 @@
+---
+title: Homework- Week 4
+subtitle: Welcome to the Tidyverse
+author: Ayrianna Hedgecock
+format: html
+embed-resources: true
+toc: true
+
+---
+
+## Setup
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+# Data folder
+PathToData <- file.path("course", "04_IntroToTidyverse", "homeworks", "A-hedgecock-FlowCore", "data", "Dataset.csv")
+HWDataPath <- file.path("course", "04_IntroToTidyverse", "homeworks", "A-hedgecock-FlowCore", "data")
+```
+
+```{r}
+HWData <- read.csv(PathToData, check.names = FALSE)
+```
+
+## Problem 1
+
+```{r}
+glimpse(HWData)
+```
+
+
+```{r}
+ImportantData <- HWData |> select(bid, timepoint, Condition, Date, CD45_count, `Vd2+`, `Vd2-`, `Va7.2+`, `Va7.2-`, `CD4+`, `CD8+`, Tcells_count)
+```
+
+```{r}
+# Clean up column names
+CleanedNames <- ImportantData |> rename(specimen = bid, timepoint_mo = timepoint, Vd2_pos = `Vd2+`, Vd2_neg = `Vd2-`, Va7.2_pos = `Va7.2+`, Va7.2_neg = `Va7.2-`, CD4_pos = `CD4+`, CD8_pos = `CD8+`)
+colnames(CleanedNames)
+```
+
+
+```{r}
+# Move colmnns around in a way that makes sense
+PrettyData <- CleanedNames |> relocate(Date, .before = 1) |> relocate(Tcells_count, .after = CD45_count) 
+
+colnames(PrettyData)
+```
+
+
+```{r}
+# filter for control condition and CD4 below 50%; descending order by CD8%
+FilteredData <- PrettyData |> filter(Condition %in% "Ctrl") |> filter(CD4_pos < 0.5) |> arrange(desc(CD8_pos))
+```
+
+
+```{r}
+NewName <- paste0("TidyData", ".csv")
+StorageLocation <- file.path(HWDataPath, NewName)
+StorageLocation
+```
+
+
+```{r}
+write.csv(FilteredData, StorageLocation, row.names = FALSE)
+```
+
+
+## Problem 2
+
+
+```{r}
+glimpse(PrettyData)
+```
+
+
+```{r}
+# across() function allows the same transformation for multiple columns
+# where() helper function that give a logical
+# \(x) is a necssary "anonymous" function needed for the 'across()' function in dplyr 1.1.0
+
+RoundedData <- PrettyData |> 
+    mutate(
+        across(
+        where(is.double),\(x) 
+        round(x, digits = 2)
+    )
+)
+
+RoundedData |> head(3) 
+```
+
+
+```{r}
+FinalDataProduct <- paste0("AnalysisData", ".csv")
+StorageFolder <- file.path(HWDataPath, FinalDataProduct)
+StorageFolder
+```
+
+
+```{r}
+write.csv(RoundedData, StorageFolder, row.names = FALSE)
+```
+
+## Problem 3
+
+
+```{r}
+filenameData <- HWData |> 
+    mutate( filename =
+    paste(bid, timepoint, Condition, sep = "_"), .before = 1
+)
+```
+
+
+```{r}
+Names <- filenameData |> pull(filename)
+```
+
+
+```{r}
+# help from ChatGPT here... 
+# True = There ARE duplicate filenames
+# FALSE = there are NOT dups
+
+length(Names) != length(unique(Names))
+```
+
+There is probably a better way to answer this question but I'm stumped. 
+

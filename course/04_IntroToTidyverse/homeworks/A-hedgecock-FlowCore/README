@@ -1,0 +1,21 @@
+## Preview error
+
+I keep getting an error when I try to preview the doc, but everything works when I run the code chucks individually as well as the "run above" option:
+
+```{r}
+Error in `file()`:
+! cannot open the connection
+Backtrace:
+    ▆
+ 1. └─utils::read.csv(PathToData, check.names = FALSE)
+ 2.   └─utils::read.table(...)
+ 3.     └─base::file(file, "rt")
+
+Quitting from Homework.qmd:27-29 [unnamed-chunk-4]
+Execution halted
+```
+
+## side note
+I tried to pull in my own .fcs file to use instead of the Dataset.csv file. 
+Everytime i tried, it wasn't reading. It kept bringing back FALSE when I called is.fcsfile from the flowcore package. 
+We'll probably get into next week- I'm probably missing something crucial.
