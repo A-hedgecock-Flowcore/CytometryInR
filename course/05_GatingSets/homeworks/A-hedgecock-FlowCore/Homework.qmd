@@ -1,0 +1,238 @@
+---
+title: Homework- Week 5
+author: Ayrianna Hedgecock
+format: html
+embed-resources: true
+toc: true
+---
+
+## Problem 1
+
+
+```{r}
+#| label: Call libraries
+
+library(flowCore)
+library(flowWorkspace)
+library(ggcyto)
+library(ggplot2)
+library(CytoML)
+library(dplyr)
+```
+
+
+```{r}
+#| label: File paths
+#| error: true
+#| eval: false
+ 
+# DataFolder <- file.path("course" , "05_GatingSets" , "homeworks", "A-hedgecock-FlowCore", "data") # for actual code
+
+DataFolder <- file.path("data") # Quarto Rendering
+fcs_files <- list.files(DataFolder, pattern = ".fcs", full.names = TRUE)
+FlowJoWspFiles <- list.files(DataFolder, pattern = ".wsp", full.names = TRUE)
+OpenedWorkspace <- FlowJoWspFiles[stringr::str_detect(FlowJoWspFiles, "Opened")]
+OpenedWorkspace
+```
+
+```{r}
+#| eval: false
+# hopefully skipping this block will allow rendering
+
+ws <- open_flowjo_xml(file = OpenedWorkspace)
+ws
+```
+
+```{r}
+#| label: gating set
+
+fj_gs <- flowjo_to_gatingset(
+    ws = ws,
+    name = 1,
+    path = DataFolder,
+    additional.keys = "GROUPNAME"
+)
+```
+
+
+```{r}
+#| label: gates
+
+plot(fj_gs)
+gateList <- gs_get_pop_paths(fj_gs, path = "auto")
+counts <- gs_pop_get_count_fast(fj_gs)
+```
+
+
+```{r}
+#| label: percentParent column
+
+PercentParent <- mutate(
+    counts,
+    Percent_Parent = 
+        round(Count / ParentCount, digits = 2)
+)
+```
+
+
+```{r}
+#| label: export stats practice
+FinishedDataset <- paste0("PercentParentDataset", ".csv")
+StorageLocation <- file.path(DataFolder, FinishedDataset)
+
+write.csv(PercentParent, StorageLocation, row.names = FALSE)
+```
+
+## Problem 2
+
+```{r}
+#| label: Inital Gating Set- CytoML
+#| error: true
+GatingSetCytoML <- flowjo_to_gatingset(
+    ws,
+    name = 1,
+    path = DataFolder
+)
+```
+
+::: {.callout-warning title="Inital Error"} 
+
+Error:
+! Multiple FCS files match sample 00_Ctrl.fcs by filename, event count, and keywords.
+Candidates are: 
+/Users/ayrianna/Documents/Week5/A-hedgecock-FlowCore/data/2025_07_26_AB_02_INF052_00_Ctrl.fcs
+/Users/ayrianna/Documents/Week5/A-hedgecock-FlowCore/data/2025_07_26_AB_02_INF100_00_Ctrl.fcs
+/Users/ayrianna/Documents/Week5/A-hedgecock-FlowCore/data/2025_07_26_AB_02_INF179_00_Ctrl.fcs
+Please move incorrect files out of this directory or its subdirectories.
+:::
+
+
+::: {.callout-warning title="New Error"}
+Only these files in folder: 
+    "A-hedgecock-FlowCore/data/2025_07_26_AB_02_INF179_00_Ctrl.fcs"
+    "A-hedgecock-FlowCore/data/2025_07_26_AB_02_INF179_00_SEB.fcs"
+
+Error:
+! Duplicated GUIDs detected within group: 00_Ctrl.fcs_10000
+ Consider adding additional keywords to the GUID with argument "additional.keys"or setting argument "additional.sampleID = TRUE" to disambiguate samples further.
+:::
+
+## Problem 3
+
+Let's try FlowSet...
+
+```{r}
+fs <- read.flowSet(
+    files = fcs_files,
+    transformation = FALSE,
+    truncate_max_range = FALSE
+)
+fs
+```
+
+
+```{r}
+gs <- GatingSet(fs)
+
+gs
+```
+
+This is just the fcs files so no gates should be present: 
+
+```{r}
+#| error: true
+plot(gs)
+```
+
+
+```{r}
+ggcyto(
+    gs,
+    subset = "root",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + 
+    geom_hex(bins = 128)
+```
+
+No data is showing?
+
+Lets try just one file:
+
+
+```{r}
+ggcyto(
+    gs[1],
+    subset = "root",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + 
+    geom_hex(bins = 128)
+```
+
+Okay I see data here...
+
+2 files?
+
+
+```{r}
+ggcyto(
+    gs[c(1:2)],
+    subset = "root",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + 
+    geom_hex(bins = 128)
+```
+
+Aha, actually data ia shown the whole time but very hard to see! The Scale is weird with the Ctrl vs SEB conditions...play around with the bins?
+
+
+```{r}
+ggcyto(
+    gs,
+    subset = "root",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + 
+    geom_hex(bins = 30)
+```
+
+Let's try on gated data:
+
+
+```{r}
+ggcyto(
+    fj_gs,
+    subset = "Tcells",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + geom_hex(bins = 128)
+```
+
+Shows overlaid groups? how to sepearate by sample? I.e. sample = row, conditions = columns?
+
+```{r}
+ggcyto(
+    fj_gs,
+    subset = "Tcells",
+    aes(
+        x = "TNFa",
+        y = "IFNg"
+    )
+) + geom_hex(bins = 128) +
+    facet_grid(~name)
+```
+
+
+Not sure where to go from here... will prob learn more next week...
