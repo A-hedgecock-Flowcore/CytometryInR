@@ -20,7 +20,7 @@ execute:
 [![AGPL-3.0](https://img.shields.io/badge/license-AGPLv3-blue)](https://www.gnu.org/licenses/agpl-3.0.en.html) [![CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by-sa/4.0/)
 :::
 
-For the YouTube livestream schedule, see [here](https://www.youtube.com/@cytometryinr)
+For the YouTube livestream recording, see [here](https://www.youtube.com/live/rwbZuAHLTdg?si=ghIM7Qhk6YaU7eju&t=70)
 
 For screen-shot slides, click [here](/course/SDY3080/SignatureMatrices_slides.qmd)
 
@@ -36,11 +36,15 @@ During weeks twelve through fourteen of the [Cytometry in R course](https://umgc
 :::
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Due to the Cytometry in R's course use of GitHub, we are not able to include the full-sized .fcs files due to individual file size sharing constraints. The datasets used during Week's 12 through 14 were consequently downsampled to get around this issue. However, working with the complete datasets can provide additional insight (as well as more closely replicate the experience of working with your own datasets).  This walk-through therefore contains the steps needed to both retrieve and process the original .fcs files that were used from the [ImmPort](https://www.immport.org/) repository. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -48,11 +52,15 @@ In the [Set Up for Signature Retrieval](/course/SDY3080/SetUp.qmd) walk-through,
 :::
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 This walk-through will share a lot of the content that is being covered in [Week 12](). However, Week 12 walk-through is more granularly focused on explaining the individual signature extraction to break open what for many in the community is a black-box. This walk-through is more focused on providing a faster method by which we can do this at scale for our experiments, in a manner closer to what we would experience using commercial software, while providing launching points for delving further into the aggregated single-cell normalized signatures that will be the focus of the next walk-through. 
 :::
 :::
+
+---
 
 # Walk-through
 
@@ -63,6 +71,8 @@ This walk-through will share a lot of the content that is being covered in [Week
 As was mentioned in the last walk-through, we are using the developmental version of the `flowGate` package that contains the new functions needed to adjust individual gates for individual specimens. Due to the twice yearly release cycle of Bioconductor packages, the easiest way to  take advantage of these new functions is to install this version of `flowGate` via GitHub. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -83,6 +93,8 @@ remotes::install_github("NKInstinct/flowGate") # If non-functional, try the clas
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Once this is done, check what version is installed using the `packageVersion()` function. The version containing both the ggplot2/ggcyto bug fixes as well as the new gating functions should be any version starting at/after 1.31.1
@@ -96,11 +108,15 @@ packageVersion("flowGate")
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Additionally, we will be using the most recent version of the Luciernaga package, which has new orchestration functions intended to make setting up fluorophore-specific gates for the correct single-color easier than it would be to specify each of these gates individually. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -114,6 +130,8 @@ packageVersion("Luciernaga")
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -133,6 +151,8 @@ remotes::install_github("DavidRach/Luciernaga")
 ```
 
 :::
+
+---
 
 ## Initial Set Up
 
@@ -154,6 +174,8 @@ library(Luciernaga)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 With this done, lets re-specify the file paths to our Storage and Output locations. 
@@ -171,11 +193,15 @@ OutputLocation <- file.path("outputs")
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Next up, given that not everyones workstations will be set up in the same way, I recommend working through each GatingSet separately. This in turn should reduce the total amount of RAM being taken up at any one point of time. 
 :::
 :::
+
+---
 
 ## Beads Single-Colors
 
@@ -194,6 +220,8 @@ BeadsSC_GatingSet <- load_gs(BeadsStoredHere)
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -202,7 +230,11 @@ pData(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/47_BeadGatingSet.png)
+
+---
 
 ### Updating Metadata
 
@@ -212,11 +244,15 @@ From the metadata, we can see that all the bead single-color controls appear to 
 :::
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Currently, within the file name, we have several bits of information that would be useful to extract out and place in their column (either in `pData()` or left as a stand-alone data.frame/tibble). This includes Fluorophore, Antigen, and control type ("Beads"). Seeing as we currently have just a name column, we can repeat the appending metadata steps that we have encountered previously, only needing to modify the RegEx syntax needed for the `stringr` package to retrieve the bits of information. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -241,6 +277,8 @@ Updated_bead_pd <- Updated_bead_pd |> relocate(Fluorophore, Antigen, Type, .afte
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -249,13 +287,19 @@ Updated_bead_pd
 
 :::
 
+---
+
 ![](images/48_BeadMetadata.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 While skimming this updated output, we can notice that both Fluorophore and Antigen ended up as '< NA >'' for the 4BeadsUnstained sample (which didn't conform to the same RegEx pattern seen by the other unmixing controls). Additionally, for this particular Cytek Aurora, the naming convention that was inputted for PE-Vio 770 and PE-Dazzle 594 differs, with no space occuring between Vio770 and Dazzle594. We can correct these small issues through use of the `dplyr` packages `case_when()` function in conjunction with the `mutate()` function. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -282,6 +326,8 @@ Updated_bead_pd <- Updated_bead_pd |>
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -290,7 +336,11 @@ Updated_bead_pd
 
 :::
 
+---
+
 ![](images/49_UpdatedBeadMetadata.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -307,6 +357,8 @@ pData(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ### Template Set Up
 
 ::: {.fragment}
@@ -314,6 +366,8 @@ pData(BeadsSC_GatingSet)
 With the metadata now updated, let's step back and consider some important elements that are missing. Currently, our single-color unmixing controls are present in a relatively generic GatingSet (last common gate being "scatter"). From here, based on the individual single-color control, we will want to create an individual gate for what should be the peak detector for the given fluorophore. We will then want to be able to adjust this individual gate (to accord with best practices), at which point we can extract out the average fluorescent signature for the beads within that gate. However, since these are single-color controls, we will also need to subtract out a background signal for beads, so we will need to provide a designated Negative specimen for this step. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -329,6 +383,8 @@ Template <- pData(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Using `mutate()`, lets go ahead and create two new columns, one for Detector (left empty as denoted by ""), and Negative (providing value "BeadsUnstained" to all since there is only one unstained sample in this GatingSet)
@@ -343,7 +399,11 @@ Template <- Template |> mutate(Detector="", Negative="BeadUnstained")
 
 :::
 
+---
+
 ![](images/50_BeadsTemplate.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -361,7 +421,11 @@ Template <- Template |> mutate(
 
 :::
 
+---
+
 ![](images/51_GuessedDetectors.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -377,7 +441,11 @@ colnames(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/52_Colnames.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -394,6 +462,8 @@ write.csv(Template, StoreHere, row.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 It is also a good idea to duplicate the file and rename it (in this case I called it "UpdatedBeadMatch"). This ensures that should your R script get run after you incorporated in edits by hand, these are not lost.
@@ -408,13 +478,19 @@ BeadMatchTemplate <- read.csv(StoreHere, check.names=FALSE)
 
 :::
 
+---
+
 ![](images/51_GuessedDetectors.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 At this point, we have an assembled template, containing most of the needed information we will need to first create the correct peak detector gates for each single-color, and subsequently match to the sample (BeadsUnstained) from which the background for subtraction is set to be extracted. 
 :::
 :::
+
+---
 
 ### Removing Duplicates
 
@@ -432,6 +508,8 @@ BeadMatchTemplate |> group_by(Fluorophore) |> mutate(Count=row_number()) |>
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 In this case, we have a few. Lets isolate them for for now and see whats up. 
@@ -445,6 +523,8 @@ BeadMatchTemplate |> filter(Fluorophore %in% c("Pacific Blue", "FITC", "Alexa Fl
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 In this particular case, one Fluorophore (Pacific Blue) is the Dump (Lineage -) fluorophore meant to exclude both B cells (CD19) and Monocytes/Myeloid (CD14) cells. If we check the individual .fcs files, the CD14 staining is the brightest in terms of MFI, so we can likely keep this one for use in the signature matrix.
@@ -456,12 +536,16 @@ In this particular case, one Fluorophore (Pacific Blue) is the Dump (Lineage -) 
 For the other two Fluorophores (Alexa Fluor 647 and FITC/Alexa Fluor 488), they correspond to the markers used to characterize the Mucosal-associated Invariant T cells (MAITs, Va7.2) and Natural Killer T cells (NKTs, Va24Ja18). Since these can be rare populations, for cell single-color controls, a back-up of the same fluorophore on CD3 instead was also acquired. These in turn were also used for the single-color bead controls to provide equivalents.
 :::
 :::
+
+---
  
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Additionally, checking the ImmPort metadata and the paper, the Va24Ja18 antibody vs. hCD1d tetramer were on FITC/Alexa Fluor 488 respectively, so there is an additional single-color present than would be expected. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -480,6 +564,8 @@ KeptBeads <- BeadMatchTemplate |>
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 And checking quickly, we can see no duplicate fluorophores are left
@@ -494,6 +580,8 @@ KeptBeads |> group_by(Fluorophore) |> mutate(Count=row_number()) |>
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 KeptBeads
@@ -501,11 +589,15 @@ KeptBeads
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 We have 29 rows (one including an unstained). The Viability (Zombie NIR)  fluorophore was only acquired with cells, so given this datasets context, everything checks out (yes, this is why metadata for an ImmPort repository is important, can you imagine trying to figure this all out without help!?!?!?!)
 :::
 :::
+
+---
 
 ### InitialUnmixSpanGates
 
@@ -515,11 +607,15 @@ As we saw during [Week 12](), even when working with a single-fluorophore, there
 :::
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Fortunately, `flowGate` provides an easy mechanism by which we can create "spanGates". Now that the new version includes the ability to modify individual gates, this means that once the gates are created, adjusting them after the fact is relatively feasible. The only tricky component remaining was creating peak detector gates based on the correct fluorophore single color control. To faciliate this process, `Luciernaga` now has an `InitialUnmixSpanGates()` function, that when provided the GatingSet object and completed template, will iterate through the gate creation process for you. Subsequently, you would only need to adjust the "spanGates" that get created. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -535,7 +631,11 @@ plot(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/53_CurrentlyPresentGates.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -551,20 +651,29 @@ InitialUnmixSpanGates(template=KeptBeads, gs=BeadsSC_GatingSet, subset="singlets
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 As the gates get created, the progress bar in turn gets updated
 :::
 :::
 
+---
+
 ::: {.fragment}
 ![](images/54_InitialProgressBar.png)
+:::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 And finally, let's check what gates are now present
 :::
 :::
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -574,7 +683,11 @@ plot(BeadsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/55_TheGates.png)
+
+---
 
 ### CheckUnmixingSpanGates
 
@@ -583,6 +696,8 @@ plot(BeadsSC_GatingSet)
 Alright, the most tedious part of the process (individual peak detector gate creation) is now out of the way. Lets now move on to fixing this initially applied gate placements, because there is no way "minpercentile=0.75" and "maxpercentile = 0.80" are correct across the board. 
 :::
 :::
+
+---
 
 #### Behind the Scenes
 
@@ -603,13 +718,19 @@ gs_apply_gate_check(gs=BeadsSC_GatingSet, gate="APC-Fire 810", sample=16, Adjust
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 spanGate should already be selected, to adjust the gate, draw a span gate for the desired region of interest. Then select done. 
 :::
 :::
 
+---
+
 ![](images/57_SpanAdjustment.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -617,7 +738,11 @@ Sometimes, the plot is off-scale. To rescale, note the approximate X value that 
 :::
 :::
 
+---
+
 ![](images/56_ManualAdjustment.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -633,13 +758,19 @@ gs_pop_get_gate(BeadsSC_GatingSet, "APC-Fire 810")
 
 :::
 
+---
+
 ![](images/58_OnlyOneAdjustment.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 As you can see, only the coordinates for our designated specimen were adjusted, with all the other spans remaining at their initial default. If we had wanted wanted to adjust across the board, we would set the AdjustAll argument to FALSE (which we will explore more in-depth during [Week 13] when deriving spillover matrices) 
 :::
 :::
+
+---
 
 ### Iterating through the Spans
 
@@ -657,13 +788,23 @@ CheckUnmixingSpanGates(template=KeptBeads, gs=BeadsSC_GatingSet, AdjustAll=TRUE)
 
 :::
 
+---
+
 ![](images/59_BUV.png)
+
+---
 
 ![](images/59_BV480.png)
 
+---
+
 ![](images/59_BV786.png)
 
+---
+
 ![](images/59_APCR700.png)
+
+---
 
 ### Saving the GatingSet
 
@@ -685,6 +826,8 @@ save_gs(BeadsSC_GatingSet, BeadsSCSaveHere)
 
 :::
 
+---
+
 ### Retrieving Average Signature
 
 ::: {.fragment}
@@ -692,6 +835,8 @@ save_gs(BeadsSC_GatingSet, BeadsSCSaveHere)
 At this point, we have created the peak detector gates, and adjusted them on basis of their respective single-color unmixing controls. Now, we just need to retrieve the cells present in those gates, reverse the transformation, and take the average measurement across each detector to get back the combination of the fluorophore + autofluorescence signal. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -708,7 +853,11 @@ UpdatedTemplate
 
 :::
 
+---
+
 ![](images/60_ExpandedTemplate.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -729,7 +878,11 @@ BeadUnstained
 
 :::
 
+---
+
 ![](images/61_BeadUnstainedValues.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -745,7 +898,12 @@ colnames(UpdatedTemplate)
 
 :::
 
+---
+
 ![](images/62_UpdatedColnames.png)
+
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -764,7 +922,11 @@ UpdatedTemplate
 
 :::
 
+---
+
 ![](images/63_AssembledTemplate.png)
+
+---
 
 ### Background Subtraction
 
@@ -782,7 +944,11 @@ BeadFluorophoreSignatures <- BackgroundSubtraction(data=UpdatedTemplate, Normali
 
 :::
 
+---
+
 ![](images/64_SubtractedValues.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -799,6 +965,8 @@ write.csv(BeadFluorophoreSignatures, StoreHere, row.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Which can then subsequently be read back in
@@ -813,6 +981,8 @@ BeadFluorophoreSignatures <- read.csv(StoreHere, check.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Alright, lets check and see how atrocious our initial span gates really were
@@ -823,17 +993,28 @@ Alright, lets check and see how atrocious our initial span gates really were
 ```{r}
 Plot <- VisualizeSignatures(columnname="Fluorophore", data=BeadFluorophoreSignatures,
  Normalize=FALSE, characterColumns="Fluorophore")
+```
 
+:::
+
+---
+
+::: {.fragment}
+```{r}
 plotly::ggplotly(Plot)
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 And those look relatively reasonable at first glance, lets power on and tackle the cell single-color unmixing controls next. 
 :::
 :::
+
+---
 
 ## Cell Single-Colors
 
@@ -852,6 +1033,8 @@ CellsSC_GatingSet <- load_gs(CellSCsStoredHere )
 
 :::
 
+---
+
 ### Updating Metadata
 
 ::: {.fragment}
@@ -868,7 +1051,11 @@ pData(CellsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/65_CellpData.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -901,7 +1088,11 @@ Updated_cell_pd
 
 :::
 
+---
+
 ![](images/66_InitialRetrievedMetadata.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -925,7 +1116,11 @@ pData(CellsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/66_ModifiedMetadata.png)
+
+---
 
 ### Template Set Up
 
@@ -950,7 +1145,11 @@ Template
 
 :::
 
+---
+
 ![](images/67_TemplateInitial.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -958,7 +1157,11 @@ In this case, however, we have a bit more variety in terms of the negative backg
 :::
 :::
 
+---
+
 ![](images/68_LabNotebook.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -971,6 +1174,8 @@ Looks like the CD8 (BUV496), CD45RA (BV510), CD56 (BV605), PD1 (PE-Vio 770), CD1
 And as was previously mentioned, we will need to match the cell gating background for the Pacific Blue CD14 (Monocyte gated) and both Zombie NIR controls (dead cell gated) when the time comes. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1009,7 +1214,11 @@ Updated_cell_pd <- Updated_cell_pd |> relocate(Fluorophore, Antigen, Type, Detec
 
 :::
 
+---
+
 ![](images/69_UpdatedNegatives.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1024,6 +1233,8 @@ pData(CellsSC_GatingSet) <- Updated_cell_pd
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1041,6 +1252,8 @@ write.csv(Template, StoreHere, row.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 StoreHere <- file.path(OutputLocation, "UpdatedCellMatch.csv")
@@ -1048,6 +1261,8 @@ CellMatchTemplate <- read.csv(StoreHere, check.names=FALSE)
 ```
 
 :::
+
+---
 
 ### Removing Duplicates
 
@@ -1064,6 +1279,8 @@ CellMatchTemplate |> group_by(Fluorophore) |> mutate(Count=row_number()) |>
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1082,12 +1299,15 @@ KeptCells
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Considering this panel has 29-fluorophores, and we have 29-rows, looks like we are good. We will need to add in the unstaineds separately later on. 
 :::
 :::
 
+---
 
 ### Initial UnmixSpanGates
 
@@ -1105,7 +1325,11 @@ plot(CellsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/65_Plots.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1121,7 +1345,11 @@ InitialUnmixSpanGates(template=KeptCells, gs=CellsSC_GatingSet, subset="scatter"
 
 :::
 
+---
+
 ![](images/70_Processing.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1137,7 +1365,11 @@ plot(CellsSC_GatingSet)
 
 :::
 
+---
+
 ![](images/71_CellGates.png)
+
+---
 
 ### Remaining Gate Adjustment
 
@@ -1155,7 +1387,11 @@ pData(CellsSC_GatingSet) |> mutate(WhereAt = dplyr::row_number())
 
 :::
 
+---
+
 ![](images/86_SCAdjustments.png)
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -1167,7 +1403,11 @@ gs_apply_gate_check(gs=CellsSC_GatingSet, gate="scatter", sample=24, AdjustAll=F
 
 :::
 
+---
+
 ![](images/87_CD14check.png)
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -1179,8 +1419,11 @@ gs_apply_gate_check(gs=CellsSC_GatingSet, gate="scatter", sample=31, AdjustAll=F
 
 :::
 
+---
+
 ![](images/88_ZombieCheck.png)
 
+---
 
 ### Checking UnmixingSpanGates
 
@@ -1198,13 +1441,19 @@ CheckUnmixingSpanGates(template=KeptCells, gs=CellsSC_GatingSet, AdjustAll=TRUE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 If the gate is good as is, just click done to move to the next specimen
 :::
 :::
 
+---
+
 ![](images/72_APCR700.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1212,7 +1461,11 @@ Alternatively, draw a span, and then select done
 :::
 :::
 
+---
+
 ![](images/72_BV786.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1220,7 +1473,11 @@ And repeat for the rest of the single-colors, attempting as much as possible to 
 :::
 :::
 
+---
+
 ![](images/72_BUV615.png)
+
+---
 
 ### Saving the GatingSet
 
@@ -1241,6 +1498,8 @@ save_gs(CellsSC_GatingSet, SaveUpdatedCellSCHere)
 
 :::
 
+---
+
 ### Retrieving Average Signature
 
 ::: {.fragment}
@@ -1257,9 +1516,11 @@ With our span gates checked, we can proceed to expand the template, iterating th
 UpdatedTemplate <- RetrieveAverageSignature(template=KeptCells, gs=CellsSC_GatingSet, inverse.transform = TRUE)
 ```
 
-:::
+---
 
 ![](images/73_UpdatedTemplate.png)
+
+---
 
 
 ### Assembling Negative Backgrounds
@@ -1276,6 +1537,8 @@ KeptCells |> pull(Negative) |> unique()
 ```
 
 :::
+
+---
 
 #### UnstainedGS
 
@@ -1294,6 +1557,8 @@ Unstained_GatingSet <- load_gs(UnstainedIntermediateStoredHere)
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -1302,7 +1567,11 @@ pData(Unstained_GatingSet)
 
 :::
 
+---
+
 ![](images/74_UnstainedMetadata.png)
+
+---
 
 #### Drawing Final Gates
 
@@ -1320,7 +1589,11 @@ plot(Unstained_GatingSet)
 
 :::
 
+---
+
 ![](images/65_Plots.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1337,7 +1610,11 @@ pd |> mutate(WhichRow = dplyr::row_number())
 
 :::
 
+---
+
 ![](images/75_WhichRow.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1355,7 +1632,11 @@ dims=list("FSC-A", "SSC-A"), subset="nonRBCs") # INF052 Control
 
 :::
 
+---
+
 ![](images/76_CordMonocytes.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1371,7 +1652,11 @@ gs_apply_gate_check(gs=Unstained_GatingSet, gate="Monocytes", sample=9, AdjustAl
 
 :::
 
+---
+
 ![](images/79_MonocytePBMCAdjust.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1388,7 +1673,11 @@ dims=list("FSC-A", "SSC-A"), subset="nonRBCs") # INF052 Control
 
 :::
 
+---
+
 ![](images/77_CordDead.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1405,7 +1694,11 @@ dims=list("FSC-A", "SSC-A"), subset="nonRBCs", regate=TRUE) # NDOO6 PMA
 
 :::
 
+---
+
 ![](images/78_PMADead.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1421,7 +1714,11 @@ plot(Unstained_GatingSet)
 
 :::
 
+---
+
 ![](images/80_FinalUnstainedGates.png)
+
+---
 
 #### Saving the GatingSet
 
@@ -1441,6 +1738,8 @@ save_gs(Unstained_GatingSet, CellUnstainedStoredHere)
 ```
 
 :::
+
+---
 
 
 #### Extracting Autofluorescence Signature
@@ -1466,6 +1765,8 @@ PBMC_Unstained[1,1] <- "PBMC_Unstained"
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -1483,6 +1784,8 @@ PBMC_Monocyte_Unstained[1,1] <- "PBMC_Monocyte_Unstained"
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -1497,6 +1800,8 @@ PBMC_Activated_Unstained[1,1] <- "PBMC_Activated_Unstained"
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -1514,6 +1819,8 @@ PBMC_Dead_Unstained[1,1] <- "PBMC_Dead_Unstained"
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -1529,6 +1836,8 @@ CBMC_Unstained[1,1] <- "CBMC_Unstained"
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| eval: FALSE
@@ -1543,6 +1852,8 @@ CBMC_Dead_Unstained[1,1] <- "CBMC_Dead_Unstained"
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1561,7 +1872,11 @@ UnstainedData
 
 :::
 
+---
+
 ![](images/81_Unstaineds.png)
+
+---
 
 ::: {.fragment}
 ```{r}
@@ -1574,6 +1889,8 @@ write.csv(UnstainedData, UnstainedSignaturesStoredHere, row.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ```{r}
 #| include: FALSE
@@ -1584,7 +1901,9 @@ UnstainedData <- read.csv(UnstainedSignaturesStoredHere, check.names=FALSE)
 
 :::
 
-#### Visualizing Autofluorescencce signatures
+---
+
+#### Visualizing Autofluorescence signatures
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1595,24 +1914,46 @@ And for curiosity while we are here, lets visualize the signatures, both raw and
 ::: {.fragment}
 ```{r}
 Plots <- Luciernaga::VisualizeSignatures(data=UnstainedData, columnname="Fluorophore", Normalize = FALSE)
+```
+
+:::
+
+---
+
+::: {.fragment}
+```{r}
 plotly::ggplotly(Plots)
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ```{r}
 Plots <- Luciernaga::VisualizeSignatures(data=UnstainedData, columnname="Fluorophore", Normalize = TRUE)
+```
+
+:::
+
+---
+
+::: {.fragment}
+```{r}
 plotly::ggplotly(Plots)
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
 So overall, some differences in brightness, but mostly appear to be similar in terms of normalized signature. 
 :::
 :::
+
+---
 
 ### Data Tidying
 
@@ -1621,6 +1962,8 @@ So overall, some differences in brightness, but mostly appear to be similar in t
 Now that we have the signature values for the detector columns and identifying "Fluorophore" name, we need to do some data tidying to fit these values from our unstained controls into the format needed for the Background subtraction template. 
 :::
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1636,7 +1979,11 @@ CellStandin <- UpdatedTemplate |> slice(1)
 
 :::
 
+---
+
 ![](images/82_SliceOne.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1652,6 +1999,8 @@ rownames(CellStandin) <- NULL
 ```
 
 :::
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1678,7 +2027,11 @@ CellStandin
 
 :::
 
+---
+
 ![](images/83_Blanked.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1696,7 +2049,11 @@ CellStandin
 
 :::
 
+---
+
 ![](images/84_EditedIn.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1713,7 +2070,11 @@ UpdatedTemplate
 
 :::
 
+---
+
 ![](images/85_Appended.png)
+
+---
 
 ### Background Subtraction
 
@@ -1731,7 +2092,11 @@ CellFluorophoreSignatures <- BackgroundSubtraction(data=UpdatedTemplate, Normali
 
 :::
 
+---
+
 ![](images/89_CellSignatures.png)
+
+---
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
@@ -1748,6 +2113,8 @@ write.csv(CellFluorophoreSignatures, StoreHere, row.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 Which can then subsequently be read back in
@@ -1762,6 +2129,8 @@ CellFluorophoreSignatures <- read.csv(StoreHere, check.names=FALSE)
 
 :::
 
+---
+
 ::: {.fragment}
 ::: {.callout-tip title="."}
 And lets visualize the outputs
@@ -1772,11 +2141,20 @@ And lets visualize the outputs
 ```{r}
 Plot <- VisualizeSignatures(columnname="Fluorophore", data=CellFluorophoreSignatures,
  Normalize=FALSE, characterColumns="Fluorophore")
+```
 
+:::
+
+---
+
+::: {.fragment}
+```{r}
 plotly::ggplotly(Plot)
 ```
 
 :::
+
+---
 
 # Take Away
 
@@ -1786,9 +2164,9 @@ In this walk-through, we explored how to orchestrate the creation and adjustment
 :::
 :::
 
-# Additional Resources
+---
 
-[Examples]()
+![](images/TakeAway3.jpg)
 
 ::: {style="text-align: right;"}
 [![AGPL-3.0](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)](https://www.gnu.org/licenses/agpl-3.0.en.html) [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
