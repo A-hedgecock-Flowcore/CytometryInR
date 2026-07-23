@@ -126,14 +126,20 @@ You will then be prompted to fill out various fields that are needed to create y
 
 ::: {.fragment}
 ::: {.callout-tip title="."}
-You will next proceed through several additional steps before completing account registration. At this point, you will end back up on the login page. 
+From there, you will receive an email containing the complete registration link (similar to the one detailed in the steps shown below), which will direct you to ImmPort. When logging in for the first time, it will ask whether you prefer to go with the authentication app, or be emailed an OTP code. Select the option that makes most sense for your own use case. 
 :::
 :::
 
 ---
 
-:::{.callout-important}
-If you are registering for the first time, please take some documentation screenshots of these last couple registration steps (leave blank/whiteout any important personal information) and post them to this [issue page](https://github.com/UMGCCCFCSR/CytometryInR/issues/217), I will update this page accordingly. Thanks! David 
+![](images/ImmPortIntermediateSteps.png)
+
+---
+
+::: {.fragment}
+::: {.callout-tip title="."}
+Going forward, when logging back in, you would end back up on the login page. 
+:::
 :::
 
 ---
