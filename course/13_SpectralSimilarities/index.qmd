@@ -23,11 +23,11 @@ For screen-shot slides, click [here](/course/03_InsideFCSFile/slides.qmd)
 
 # Background
 
-Welcome to [Week 13](/Schedule.qmd#similarities-and-hotspots) of the course. Over the past two weeks, we have seen how to [isolate]() normalized fluorescent signatures from our unmixing controls. We also explored ways to [make this process]() more feasible (and less painful) to implement when working with all the fluorophores in our panel.
+Welcome to [Week 13](/Schedule.qmd#similarities-and-hotspots) of the course. Over the past two weeks, we have seen how to [isolate](/course/12_SpectralSignatures/index.qmd) normalized fluorescent signatures from our unmixing controls. We have also explored ways to [make this process](/course/SDY3080/SignatureMatrices.qmd) more feasible (and less painful) to implement when working with all the fluorophores in our panel.
 
-The focus of today's walkthrough will be to explore the various ways by which we can compare these signatures to each other, and how to infer additional context about how our proposed fluorophore panels will perform when we factor in the regions of signature overlap that are present between the fluorophores. This in turn can lead to better future panel designs (as we try to reduce the extent of the overlap to improve resolution)
+The focus of today's walkthrough will be to explore the various ways by which we can compare these normalized fluorescent signatures to each other, and try to infer how our proposed fluorophore panels will perform when we factor in regions of signature overlap that are present between the fluorophores. This in turn can lead to improved panel designs (as we try to reduce the extent of the overlap to improve resolution) in future panels. 
 
-By the end of this primary walkthrough (and the bonus content), you will also hopefully have a better understanding about what goes into the various panel metrics displayed by various commercial vendors.
+By the end of this primary walkthrough (and the bonus content), you will also hopefully have a better understanding about what goes into the various panel metrics displayed by various commercial vendors. 
 
 # Walk Through
 
@@ -45,7 +45,7 @@ library(tidyr)
 library(tibble)
 ```
 
-We will start first working with the signature matrices for the bead and cell single-color controls from the [SDY3080]() dataset that we completed retrieving as part of the bonus [Signature Matrices]() walk-through. These were saved as .csv files that can be found in this week's data folder. 
+We will start off by first working with the signature matrices for the bead and cell single-color controls from the [SDY3080](https://www.immport.org/shared/search?text=SDY3080) dataset that we completed retrieving as part of the bonus [Signature Matrices](/course/SDY3080/SignatureMatrices.qmd) walk-through. These were saved as .csv files that can be found in this week's data folder. 
 
 ```{r}
 #StorageLocation <- file.path("course", "13_SpectralSimilarities", "data")
@@ -64,7 +64,7 @@ BeadData <- BeadData |> filter(!str_detect(Fluorophore, "Unstained"))
 head(BeadData, 3)
 ```
 
-And same process for the signature matrix retrieved from the cell-single color controls. 
+And repeat the same process for the signature matrix retrieved from the cell-single color controls. 
 
 ```{r}
 CellsPath <- list.files(StorageLocation, pattern="CellInitialSignature", full.names=TRUE)
@@ -73,7 +73,7 @@ CellsData <- CellsData |> filter(!str_detect(Fluorophore, "Unstained"))
 head(CellsData, 3)
 ```
 
-Additionally, lets retrieve the reference signatures we have been comparing from `Luciernaga()` for easier comparison vs. those we ourselves derived. 
+Additionally, lets retrieve the reference signatures for our respective fluorophores as they are stored in `Luciernaga()` for easier comparison of the references vs. the signatures we ourselves derived. 
 
 ```{r}
 OurFluorophores <- CellsData |> pull(Fluorophore)
@@ -88,7 +88,7 @@ head(ReferenceData, 3)
 
 ### Rearranging by Detector
 
-To make our lives a little bit easier, lets rearrange the rows so that we see the fluorophores displayed by peak detector according to laser. We can first modify the tidying code on the `Luciernaga` references to determine peak detectors for each fluorophore. 
+Now that we have our 3 signature matrices, to make our lives a little bit easier, lets rearrange the rows so that we see the fluorophores displayed in order of peak detector according to laser and wavelength. We can first modify the tidying code we had to retrieve the `Luciernaga` references to instead retrieve the peak detectors for each fluorophore. 
 
 ```{r}
 # Determine Peak Detectors for rearranging later
@@ -99,7 +99,7 @@ PeakDetectors <- Data |> group_by(Fluorophore) |>
 PeakDetectors
 ```
 
-We then need to relocate our previously written code containing the instrument detector (to avoid re-typing the vector of detector names in correct sequence by hand again).
+We then need to relocate our previously written code containing the instrument detector (to avoid re-typing the vector of detector names in correct sequence by hand again). Alternatively, if you have a raw .fcs file, you could load it into a GatingSet, run `colnames()`, and copy and paste the output into the code-chunk, adding the "" and commas as needed to save on typing time. 
 
 ```{r}
 DetectorOrder <- c("UV1", "UV2", "UV3", "UV4", "UV5", "UV6", "UV7", "UV8",
@@ -112,7 +112,7 @@ DetectorOrder <- c("UV1", "UV2", "UV3", "UV4", "UV5", "UV6", "UV7", "UV8",
                "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8")
 ```
 
-Now that we have the vector with the correct sequence, we can `factor()` the peak detectors data.frame, and `rearrange()` it into the correct order. From there, we can `pull()` the Fluorophore column to retrieve a vector of Fluorophore names in the correct sequence.  
+Now that we have the vector with the correct sequence, we can `factor()` the Detector column peak detectors data.frame, setting levels equal to our vector. Once this is done, we can use `rearrange()` to place the rows in the correct order on the basis of our designated levels. Once this is done, we can `pull()` the Fluorophore column to retrieve a vector of Fluorophore names in their now corrected sequence across lasers and wavelengths (thanks to the rearrangement we carried out on the Detector column).  
 
 ```{r}
 PeakDetectors$Detector <- factor(PeakDetectors$Detector, levels=DetectorOrder)
@@ -123,7 +123,7 @@ FluorophoreOrder <- PeakDetectors |> arrange(Detector) |>
 FluorophoreOrder
 ```
 
-At this point, we just need to rearrange our existing data.frame objects to match. 
+With this vector of fluorophores in the correct sequence now retrieved, we just need to rearrange our individual data.frame objects to also match. We can `factor()` their individual Fluorophore columns, providing the Fluorophore vector as their levels argument, before following up with the `dplyr` `arrange()` function
 
 ```{r}
 BeadData$Fluorophore <- factor(BeadData$Fluorophore, levels=FluorophoreOrder)
@@ -143,6 +143,8 @@ ReferenceData <- ReferenceData |> arrange(Fluorophore)
 head(ReferenceData,3)
 ```
 
+And with that, most of our data tidying steps are complete. Lets start comparing signatures!
+
 ## Panel 
 
 Before going to far, lets refresh our memory for this Cytek Aurora 5-laser panel of how these fluorophores are distributed across the various lasers and wavelengths. 
@@ -157,13 +159,57 @@ Table <- FluorophoreMatrix(TableData, NumberDetectors = 64)
 Table
 ```
 
-When considering whether certain combinations of fluorophores will behave together, its is important to remember that fluorophores can interact **intra-laser** (on adjacent fluorophores), **inter-laser** (on fluorophores with similar wavelength emissions for other lasers), and **tandem** interactions (especially for tandem degradation scenarios). 
+One of the main reasons I like visualizing a panel in this way, is that it is helpful when determining how various combinations of fluorophores will behave together when placed in a panel. 
 
-The extent that these interactions affect your panel can be partially mediated depending on the co-expression pattern of your cell populations for the respective antigens. 
+Speaking generally, fluorophores typically have three common types of interactions
+
+- **Intra-laser** (between fluorophores on adjacent detectors on the same laser)
+
+```{r}
+#| include: FALSE
+
+Example <- ReferenceData |> filter(Fluorophore %in% c("BV510", "BV605"))
+
+Plots <- VisualizeSignatures(data=Example,
+ columnname="Fluorophore", Normalize = FALSE)
+
+plotly::ggplotly(Plots)
+```
+
+- **Inter-laser** (between fluorophores with similar wavelength emissions on different lasers)
+
+```{r}
+#| include: FALSE
+
+Example <- ReferenceData |> filter(Fluorophore %in% c("BUV737", "APC-R700"))
+
+Plots <- VisualizeSignatures(data=Example,
+ columnname="Fluorophore", Normalize = FALSE)
+
+plotly::ggplotly(Plots)
+```
+
+- **Tandem** (between the tandem and the parent fluorophores, especially if the tandem is starting to degrade). 
+
+```{r}
+#| include: FALSE
+
+Example <- CellsData |> filter(Fluorophore %in% c("APC", "APC-Fire 810")) |> 
+     select(-c("name", "Antigen", "Type", "Detector", "Negative"))
+
+Plots <- VisualizeSignatures(data=Example,
+ columnname="Fluorophore", Normalize = FALSE)
+
+plotly::ggplotly(Plots)
+```
+
+While all the above occur partly due to the nature of the flurophores themselves, we have to remember that the extent that they cause issues in our panel can be partially mediated depending on the co-expression pattern of your cell populations for the respective antigens. If you have fluorophores that interact, but they are found on two separate cell populations, then this issue will be minimized vs. if both markers are expressed on the same cell. 
 
 ## Signatures
 
-Let's go ahead and use `VisualizeSignatures()` to see our retrieved signatures
+Let's go ahead and use `VisualizeSignatures()` to see our retrieved signatures.
+
+For the bead single-color controls, we get the following signatures
 
 ```{r}
 BeadData2 <- BeadData |>
@@ -175,6 +221,8 @@ Plots <- VisualizeSignatures(data=BeadData2,
 plotly::ggplotly(Plots)
 ```
 
+For the cell single-color controls, we get the following signatures
+
 ```{r}
 CellsData2 <- CellsData |>
       select(-c("name", "Antigen", "Type", "Detector", "Negative"))
@@ -185,6 +233,8 @@ Plots <- VisualizeSignatures(data=CellsData2,
 plotly::ggplotly(Plots)
 ```
 
+And for the reference signatures, we see the following
+
 ```{r}
 Plots <- VisualizeSignatures(data=ReferenceData,
  columnname="Fluorophore", Normalize = FALSE)
@@ -194,17 +244,35 @@ plotly::ggplotly(Plots)
 
 ### Direct Comparison
 
-Obviously, one way to compare our retrieved signatures is just to place them into the same view. Lets do some of the required tidying first, to avoid accidentally over-writing. We can first append identifyers for each data.frame via `paste0()` to the existing name in the Fluorophore column. Separately, the 'Reference' data.frame has different column names for the detector columns, so we can add the "-A" needed to match to the cell and bead data.frames, allowing us to combine the rows together via `rbind()`
+The simplest way of comparing our retrieved signatures would be to visualize those we want to compare in the same plot. To do this for our datasets, let us carry out some of the required data tidying first, to avoid accidental confusion (or overwriting) when there are 3 identically named "APC" fluorophores in the same data.frame. 
+
+Within the 'Fluorophore' column of each data.frame, we can combine the existing name with an additional identifying character string using the `paste0()` function, before assigning back to the original (in the process overwriting it with the modified version)
 
 ```{r}
 BeadData2$Fluorophore <- paste0(BeadData2$Fluorophore, "_Beads")
 CellsData2$Fluorophore <- paste0(CellsData2$Fluorophore, "_Cells")
 ReferenceData$Fluorophore <- paste0(ReferenceData$Fluorophore, "_Reference")
+```
+
+Separately, the 'Reference' data.frame has different column names for the detector columns compared to the Cell and Bead data.frames. 
+
+```{r}
+setdiff(colnames(CellsData), colnames(ReferenceData))
+```
+
+
+```{r}
+setdiff(colnames(ReferenceData), colnames(CellsData))
+```
+
+So that they can match, we will need to add the "-A" to the `colnames()` of ReferenceData. From there, we can combine the rows of  all three data.frames via either the `rbind()` or `bind_rows()` function, ending up with a large data.frame object. 
+
+```{r}
 colnames(ReferenceData)[2:ncol(ReferenceData)] <- paste0(colnames(ReferenceData)[2:ncol(ReferenceData)], "-A")
 Dataset <- rbind(BeadData2, CellsData2, ReferenceData)
 ```
 
-With our Dataset assembled, we can now use `VisualizeSignatures()` and `ggplotly()` to open an interactive view. 
+Now that we have assembled Dataset, we can compare all three sets of signatures using `VisualizeSignatures()` and `ggplotly()` to open an interactive view. 
 
 ```{r}
 Plots <- VisualizeSignatures(data=Dataset,
@@ -225,7 +293,9 @@ By contrast, for PerCP-Cy5.5, all three are discordant in their own unique ways.
 
 ![](images/02_PerCPCy5.png)
 
-While we can see these differences, and can describe how they are different, many of the signature comparison metrics are meant to help simplify/facilitate these types of comparisons. 
+Whether the differences we see between our beads and the reference controls PerCP-Cy5.5 is due to acquisition on different instruments (different lasers, gains, etc.), or differences at the fluorophore manufacturer/batch level is something to be explored on another day. 
+
+Utilmately, this approach works really well when it comes to seeing the differences, and we are able to describe how they are different, so it can be both quantitative and qualitative. Hoeverer, it is clearly not a high-throughput approach. Ultimately, many of the metrics we use when comparing signatures are attempts at putting a number to these differences, allowing for less painful implementation in a typical computational workflow. 
 
 ## Cosine
 
