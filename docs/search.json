@@ -204,7 +204,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -216,7 +216,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -228,7 +228,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -240,7 +240,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -252,7 +252,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -260,11 +260,11 @@
     "href": "course/13_SpectralSimilarities/index.html#collinearity",
     "title": "13 - Spectral Similarities",
     "section": "Collinearity",
-    "text": "Collinearity\nNext up, we have a fun one. Unmixing-dependent hotspot (or collinearity).\nAt the heart, this is the math\n\nSimilarity &lt;- BeadCosines\nTheseFluorophores &lt;- rownames(Similarity)\n\nPseudoInverse &lt;- MASS::ginv(Similarity)\nAbsolute &lt;- abs(PseudoInverse)\nTheSQRT &lt;- sqrt(Absolute)\n\nrow.names(TheSQRT) &lt;- TheseFluorophores\nHotspots &lt;- round(TheSQRT, 2)\n\n\nhead(Hotspots, 3)\n\n             [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]\nBUV395_Beads 1.04 0.54 0.02 0.19 0.18 0.16 0.34 0.44 0.43  0.40  0.47  0.22\nBUV496_Beads 0.54 1.32 0.68 0.23 0.16 0.09 0.17 0.38 0.41  0.46  1.12  0.66\nBUV563_Beads 0.02 0.68 1.42 0.99 0.56 0.05 0.02 0.36 0.55  0.94  0.90  0.58\n             [,13] [,14] [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23]\nBUV395_Beads  0.12  0.07  0.14  0.19  0.23  0.20  0.07  0.03  0.21  0.07  0.03\nBUV496_Beads  0.27  0.14  0.13  0.12  0.57  0.57  0.11  0.46  0.44  0.10  0.07\nBUV563_Beads  0.18  0.11  0.08  0.05  0.08  0.35  0.28  1.01  0.69  0.20  0.09\n             [,24] [,25] [,26] [,27] [,28]\nBUV395_Beads  0.15  0.02  0.07  0.06  0.17\nBUV496_Beads  0.11  0.21  0.15  0.02  0.08\nBUV563_Beads  0.29  0.35  0.17  0.08  0.06\n\n\nAt which point, we just need to properly format it into right triangles\n\nfinal_matrix &lt;- Hotspots\nlower_tri &lt;- final_matrix\nlower_tri[upper.tri(final_matrix)] &lt;- NA  \n\nReturnTri &lt;- data.frame(lower_tri)\ncolnames(ReturnTri) &lt;- row.names(ReturnTri)\nReturnTri &lt;- ReturnTri |&gt; \n     tibble::rownames_to_column(\"Fluorophore\")\n\nFor plotting, as we are starting to anticipate, we need to pivot_longer() for subsequent use with ggplot2 geom_tile() function.\n\nLonger &lt;- as.data.frame(lower_tri) |&gt; \n     rownames_to_column(\"row\") |&gt; \n     pivot_longer(cols = -row, names_to = \"col_num\",\n      names_prefix = \"V\",values_to = \"value\") |&gt;\n     mutate(row = factor(row, levels=rev(TheseFluorophores)),\n          col = as.numeric(col_num),\n          col_label = factor(TheseFluorophores[col],\n          levels = TheseFluorophores)) |&gt;\n    filter(!is.na(value)) |&gt; arrange(row)\n\nAnd with this tidying done, we can proceed with plotting.\n\n  Plot &lt;- ggplot(Longer, aes(x = col_label, y = row, fill = value)) +\n     geom_tile(color = \"white\", linewidth = 0.3) +\n     geom_text(aes(label = round(value, 2)), \n     color = ifelse(Longer$value &gt; max(Longer$value)/2, \"white\", \"black\"),\n          size = 3, fontface = \"bold\") +\n     scale_fill_gradient(low = \"white\",high = \"red2\",\n          na.value = \"white\",name=\"Hotspot\") +\n     scale_x_discrete(position = \"bottom\") + labs(x = NULL, y = NULL) +\n     coord_fixed() + theme_minimal(base_size = 12) +\n     theme(panel.grid = element_blank(),legend.position = \"right\",\n     axis.text.x = element_text(angle = 45,hjust = 1,vjust = 1,),\n     axis.text.y = element_text(hjust = 1))\n\n\n  Plot",
+    "text": "Collinearity\nNext up, we have a fun one. Unmixing-dependent hotspot (or collinearity).\nFor this one, we start off with one of the cosine matrices we generated previously. Lets also go ahead and store the fluorophore names as a a vector so that we can append them back in later on.\n\nSimilarity &lt;- BeadCosines\nTheseFluorophores &lt;- rownames(Similarity)\n\nAt this point comes the math portion of the code.\n\nPseudoInverse &lt;- MASS::ginv(Similarity)\nAbsolute &lt;- abs(PseudoInverse)\nTheSQRT &lt;- sqrt(Absolute)\n\nAt which point we can return the Fluorophore vector of names to their original rownames position. We can also round the values to make interpretation a bit easier in the larger plot.\n\nrow.names(TheSQRT) &lt;- TheseFluorophores\nHotspots &lt;- round(TheSQRT, 2)\n\n\nhead(Hotspots, 3)\n\n             [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]\nBUV395_Beads 1.04 0.54 0.02 0.19 0.18 0.16 0.34 0.44 0.43  0.40  0.47  0.22\nBUV496_Beads 0.54 1.32 0.68 0.23 0.16 0.09 0.17 0.38 0.41  0.46  1.12  0.66\nBUV563_Beads 0.02 0.68 1.42 0.99 0.56 0.05 0.02 0.36 0.55  0.94  0.90  0.58\n             [,13] [,14] [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23]\nBUV395_Beads  0.12  0.07  0.14  0.19  0.23  0.20  0.07  0.03  0.21  0.07  0.03\nBUV496_Beads  0.27  0.14  0.13  0.12  0.57  0.57  0.11  0.46  0.44  0.10  0.07\nBUV563_Beads  0.18  0.11  0.08  0.05  0.08  0.35  0.28  1.01  0.69  0.20  0.09\n             [,24] [,25] [,26] [,27] [,28]\nBUV395_Beads  0.15  0.02  0.07  0.06  0.17\nBUV496_Beads  0.11  0.21  0.15  0.02  0.08\nBUV563_Beads  0.29  0.35  0.17  0.08  0.06\n\n\nFor unmixing-dependent spread matrix, it is normally presented as a triangle, so we can work use base R notation to set the upper half of the triangle to NA values.\n\nfinal_matrix &lt;- Hotspots\nlower_tri &lt;- final_matrix\nlower_tri[upper.tri(final_matrix)] &lt;- NA  \n\nFrom here, we can convert the matrix back to a data.frame object, copy the rownames to the columns, and make the rownames a proper column as well through the use of the tibble packages rownames_to_column() function.\n\nReturnTri &lt;- data.frame(lower_tri)\ncolnames(ReturnTri) &lt;- row.names(ReturnTri)\nReturnTri &lt;- ReturnTri |&gt; \n     tibble::rownames_to_column(\"Fluorophore\")\n\nFor plotting, as we are starting to anticipate, we need to pivot_longer() for subsequent use with ggplot2 geom_tile() function.\n\nLonger &lt;- as.data.frame(lower_tri) |&gt; \n     rownames_to_column(\"row\") |&gt; \n     pivot_longer(cols = -row, names_to = \"col_num\",\n      names_prefix = \"V\",values_to = \"value\") |&gt;\n     mutate(row = factor(row, levels=rev(TheseFluorophores)),\n          col = as.numeric(col_num),\n          col_label = factor(TheseFluorophores[col],\n          levels = TheseFluorophores)) |&gt;\n    filter(!is.na(value)) |&gt; arrange(row)\n\nAnd with this tidying done, we can proceed with plotting.\n\n  Plot &lt;- ggplot(Longer, aes(x = col_label, y = row, fill = value)) +\n     geom_tile(color = \"white\", linewidth = 0.3) +\n     geom_text(aes(label = round(value, 2)), \n     color = ifelse(Longer$value &gt; max(Longer$value)/2, \"white\", \"black\"),\n          size = 3, fontface = \"bold\") +\n     scale_fill_gradient(low = \"white\",high = \"red2\",\n          na.value = \"white\",name=\"Hotspot\") +\n     scale_x_discrete(position = \"bottom\") + labs(x = NULL, y = NULL) +\n     coord_fixed() + theme_minimal(base_size = 12) +\n     theme(panel.grid = element_blank(),legend.position = \"right\",\n     axis.text.x = element_text(angle = 45,hjust = 1,vjust = 1,),\n     axis.text.y = element_text(hjust = 1))\n\n\n  Plot",
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {
@@ -276,7 +276,7 @@
     "crumbs": [
       "About",
       "Cytometry Core",
-      "12 - Spectral Similarities"
+      "13 - Spectral Similarities"
     ]
   },
   {

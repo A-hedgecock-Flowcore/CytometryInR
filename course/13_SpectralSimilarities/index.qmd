@@ -482,31 +482,42 @@ plotly::ggplotly(Plot)
 
 Next up, we have a fun one. Unmixing-dependent hotspot (or collinearity). 
 
-At the heart, this is the math
+For this one, we start off with one of the cosine matrices we generated previously. Lets also go ahead and store the fluorophore names as a a vector so that we can append them back in later on. 
 
 ```{r}
 Similarity <- BeadCosines
 TheseFluorophores <- rownames(Similarity)
+```
 
+At this point comes the math portion of the code. 
+
+```{r}
 PseudoInverse <- MASS::ginv(Similarity)
 Absolute <- abs(PseudoInverse)
 TheSQRT <- sqrt(Absolute)
+```
 
+At which point we can return the Fluorophore vector of names to their original rownames position. We can also round the values to make interpretation a bit easier in the larger plot. 
+
+```{r}
 row.names(TheSQRT) <- TheseFluorophores
 Hotspots <- round(TheSQRT, 2)
 ```
-
 ```{r}
 head(Hotspots, 3)
 ```
 
-At which point, we just need to properly format it into right triangles
+For unmixing-dependent spread matrix, it is normally presented as a triangle, so we can work use base R notation to set the upper half of the triangle to NA values. 
 
 ```{r}
 final_matrix <- Hotspots
 lower_tri <- final_matrix
 lower_tri[upper.tri(final_matrix)] <- NA  
+```
 
+From here, we can convert the matrix back to a data.frame object, copy the rownames to the columns, and make the rownames a proper column as well through the use of the `tibble` packages `rownames_to_column()` function. 
+
+```{r}
 ReturnTri <- data.frame(lower_tri)
 colnames(ReturnTri) <- row.names(ReturnTri)
 ReturnTri <- ReturnTri |> 
