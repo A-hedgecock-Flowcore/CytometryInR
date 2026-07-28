@@ -166,7 +166,7 @@ Speaking generally, fluorophores typically have three common types of interactio
 - **Intra-laser** (between fluorophores on adjacent detectors on the same laser)
 
 ```{r}
-#| include: FALSE
+#| echo: FALSE
 
 Example <- ReferenceData |> filter(Fluorophore %in% c("BV510", "BV605"))
 
@@ -179,7 +179,7 @@ plotly::ggplotly(Plots)
 - **Inter-laser** (between fluorophores with similar wavelength emissions on different lasers)
 
 ```{r}
-#| include: FALSE
+#| echo: FALSE
 
 Example <- ReferenceData |> filter(Fluorophore %in% c("BUV737", "APC-R700"))
 
@@ -192,7 +192,7 @@ plotly::ggplotly(Plots)
 - **Tandem** (between the tandem and the parent fluorophores, especially if the tandem is starting to degrade). 
 
 ```{r}
-#| include: FALSE
+#| echo: FALSE
 
 Example <- CellsData |> filter(Fluorophore %in% c("APC", "APC-Fire 810")) |> 
      select(-c("name", "Antigen", "Type", "Detector", "Negative"))
@@ -301,7 +301,7 @@ Utilmately, this approach works really well when it comes to seeing the differen
 
 For those of you who are Cytek Aurora users, you may be familiar with this screen in SpectroFlo, that displays a "similarity matrix". The values that are present within are meant to describe how similar the two fluorophores are to each other. 
 
-![](images/00_PlotlyPNGOutput.png)
+![](images/CosineValues.png)
 
 
 Behind the curtain, these values are just the cosine between the two vectors. If both fluorophore vectors are identical to each other, they will have a value of 1. By contrast, if they are not similar, they will have a value of 0. It is easier to describe this by showing it on a plot. 
@@ -550,16 +550,20 @@ plotly::ggplotly(Plot)
 
 ## Collinearity 
 
-Next up, we have a fun one. Unmixing-dependent hotspot (or collinearity). 
+One of the challenges working with larger spectral flow cytometry panels (>30 fluorophores), is that with each additional fluorophore added into the unmixing matrix, additional uncertainty is present at the time of the unmixing calculation. This is in part due to the collinearity that is present between the individual reference signatures.
 
-For this one, we start off with one of the cosine matrices we generated previously. Lets also go ahead and store the fluorophore names as a a vector so that we can append them back in later on. 
+This was very nicely covered in the recent Cytometry Part A paper by [Peter Mage, Andrew Konecny and Florian Mair](https://onlinelibrary.wiley.com/doi/full/10.1002/cyto.a.70044). In this paper, they also described how to get at a new metric to identify unmixing-dependent hotspots (UDS) that are susceptible due to their collinearity. 
+
+Since the math is in the paper, we are able to take advantage of existing library of math functions to implement the calculation. Likewise, we can use `ggplot2` to generate a visual. One thing to remember is that since these matrices can get quite large, it might be better to save them out as a .pdf rather than try to zoom in and out of the Plots window in the right secondary side-bar. 
+
+To get started, we are starting with one of the cosine values matrices we generated above. To make sure any edits made don' affect the original, lets save it as new object ('Similarity'). Also while here, lets save the `rownames()` containing the fluorophore names as a vector, allowing us to append them back in later on. 
 
 ```{r}
 Similarity <- BeadCosines
 TheseFluorophores <- rownames(Similarity)
 ```
 
-At this point comes the math portion of the code. 
+At this point, we can carry out the math section (see the [original paper](https://onlinelibrary.wiley.com/doi/full/10.1002/cyto.a.70044) for details on why)
 
 ```{r}
 PseudoInverse <- MASS::ginv(Similarity)
@@ -567,7 +571,13 @@ Absolute <- abs(PseudoInverse)
 TheSQRT <- sqrt(Absolute)
 ```
 
-At which point we can return the Fluorophore vector of names to their original rownames position. We can also round the values to make interpretation a bit easier in the larger plot. 
+At this point, our data ends up in a matrix that looks like this. 
+
+```{r}
+head(TheSQRT,3)
+```
+
+So to make interpretability easier, lets reappend the vector of Fluorophore names to the original rownames position. We can also round the values to make interpretation a bit easier in the larger plot. 
 
 ```{r}
 row.names(TheSQRT) <- TheseFluorophores
@@ -577,7 +587,7 @@ Hotspots <- round(TheSQRT, 2)
 head(Hotspots, 3)
 ```
 
-For unmixing-dependent spread matrix, it is normally presented as a triangle, so we can work use base R notation to set the upper half of the triangle to NA values. 
+For the unmixing-dependent spread matrix, the same comparison values are mirrored across the diagonal as triangles. We can use base R notation to set the upper half of the triangle values to NA, so that they show up empty in the final plot. 
 
 ```{r}
 final_matrix <- Hotspots
@@ -585,16 +595,17 @@ lower_tri <- final_matrix
 lower_tri[upper.tri(final_matrix)] <- NA  
 ```
 
-From here, we can convert the matrix back to a data.frame object, copy the rownames to the columns, and make the rownames a proper column as well through the use of the `tibble` packages `rownames_to_column()` function. 
+At this point, if we wanted, we could save the file out as a .csv for later use. For easier reloading back into R in the future, I'd recommend converting the matrix back to a data.frame object, copy the `row.names()` to the columns, and switch the  rownames  to a proper column using the `tibble` packages `rownames_to_column()` function. 
 
 ```{r}
 ReturnTri <- data.frame(lower_tri)
 colnames(ReturnTri) <- row.names(ReturnTri)
 ReturnTri <- ReturnTri |> 
      tibble::rownames_to_column("Fluorophore")
+# write.csv(ReturnTri, "UnmixingDependentHotspot.csv", row.names=FALSE)
 ```
 
-For plotting, as we are starting to anticipate, we need to `pivot_longer()` for subsequent use with `ggplot2` `geom_tile()` function. 
+As we may start anticipating, when working with `ggplot2` `geom_tile()` we often need to `pivot_longer()` our existing data, so lets proceed through these tidying steps
 
 ```{r}
 Longer <- as.data.frame(lower_tri) |> 
@@ -608,7 +619,13 @@ Longer <- as.data.frame(lower_tri) |>
     filter(!is.na(value)) |> arrange(row)
 ```
 
-And with this tidying done, we can proceed with plotting. 
+Which results in a "longer" data.frame that would look as follows. 
+
+```{r}
+head(Longer, 3)
+```
+
+Now that we have a "longer" data.frame, we can pass through to `ggplot2` to create the `geom_tile()` style plot. 
 
 ```{r}
   Plot <- ggplot(Longer, aes(x = col_label, y = row, fill = value)) +
@@ -625,13 +642,28 @@ And with this tidying done, we can proceed with plotting.
      axis.text.y = element_text(hjust = 1))
 ```
 
+When we try to run it, the dimensions may not look quite ideal.
+
 ```{r}
-  Plot
+Plot
 ```
+
+Which is why often, I will save directly to a .png or .jpg via `ggsave()`, and just change the dimensions as needed depending on the total number of fluorophores. 
+
+```{r}
+SaveAsThis <- file.path(OutputLocation, "UnmixingDependentSpreadMatrix.png")
+ggsave(SaveAsThis, units ="in", width = 10, height = 10)
+```
+
+![](images/UnmixingDependentSpreadMatrix.png)
+
+For interpretation, values on the diagonal correspond to the individual fluorophore itself, with the greater values being those more impacted by collinearity. The values off the diagonal (ex. APC vs Alexa Fluor 647) designate those that are interacting and contributing towards that neighborhood hotspot. 
 
 ## Condition Number Reference Matrix
 
 On to our next metric. For the Cytek Aurora users, you may have seen this "Complexity" index hanging around. 
+
+![](images/ComplexityIndex.png)
 
 In this case, we are talking about the . One way to think about it is the most complex interaction between two fluorophores in the panel, divided by the least complicated interaction of two fluorophores in the panel. 
 
@@ -680,15 +712,15 @@ Next up, having derived the fluorescent signatures, quality checked them and mad
 # Take-home Problems
 
 :::{.callout-tip title="Problem 1"}
-Pending
+We assembled "Dataset", consisting of the three signature matrices. Use `dplyr` and `strinr` to filter for any "APC" fluorophore. Pass this smaller dataset through the various steps from today (visualize, cosine, UDS, kappa), saving images or taking screenshots as appropiate. Provide a summary blurb about the interactions you might encounter if you designed this "all-Red" panel. 
 :::
 
 :::{.callout-tip title="Problem 2"}
-Pending
+Randomly subset the rows of Reference matrix into 4 smaller matrices, consisting of the same number of fluorophores (just with different fluorophores). Pass each through `kappa()` and see how the rank value changes. Summarize/Elaborate on your findings as a short blurb, does the value track with fluorophore overlap present? 
 :::
 
 :::{.callout-tip title="Problem 3"}
-Pending
+In our unmixing-dependent spread (UDS) hotspot, we used only our panel fluorophores as inputs. But what if you wanted to evaluate spread for this panel if 1 or 2 autofluorescences signatures were present? Retrieve the unstained signature(s) from 'Week 12', and modify/re-run the cosine and unmixing-dependent spread matrices. After saving the plots as images or taking screenshots, briefly summarize what fluorophores would have been most impacted had you originally also accounted for autofluorescences. 
 :::
 
 ::: {style="text-align: right;"}
