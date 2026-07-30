@@ -51,11 +51,11 @@ library(ggplot2)
 Next up, specify the storage (.fcs files) and output (.gs folder) locations (if you are following the courses organization scheme). 
 
 ```{r}
-#StorageLocation <- file.path("course", "SDY3080", "data", "SDY3080")
-StorageLocation <- file.path("data", "SDY3080")
+StorageLocation <- file.path("course", "SDY3080", "data", "SDY3080")
+#StorageLocation <- file.path("data", "SDY3080")
 
-#OutputLocation <- file.path("course", "SDY3080", "outputs")
-OutputLocation <- file.path("outputs")
+OutputLocation <- file.path("course", "SDY3080", "outputs")
+#OutputLocation <- file.path("outputs")
 ```
 
 With this done, lets proceed to load our CellSC GatingSet back into the local environment from its .gs folder. As a reminder, this is the one where the peak detector gates had been created, checked and corrected. 
