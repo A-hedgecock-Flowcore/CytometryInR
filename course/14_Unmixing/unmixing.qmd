@@ -144,11 +144,11 @@ library(purrr)
 Next up, lets designate the `file.path()` to both our storage and output folders. 
 
 ```{r}
-StorageLocation <- file.path("course", "14_Unmixing", "data")
-#StorageLocation <- file.path("data")
+#StorageLocation <- file.path("course", "14_Unmixing", "data")
+StorageLocation <- file.path("data")
 
-OutputLocation <- file.path("course", "14_Unmixing", "outputs")
-#OutputLocation <- file.path("outputs")
+#OutputLocation <- file.path("course", "14_Unmixing", "outputs")
+OutputLocation <- file.path("outputs")
 ```
 
 We can then identify both the .csv and .fcs files that we have for this week's dataset using `list.files()`. 
@@ -2378,6 +2378,7 @@ In this case, the retained are no longer included, so the first fluorophore is l
 Before we go too far, lets make sure whether the range, minRange and maxRange values are going to be comparable to those present in the unmixed .fcs file if we had unmixed on the Cytek Aurora using SpectroFlo. Let's write a `file.path()` to the data folder from [Week 08](), which had unmixed .fcs file acquired and unmixed on the same instrument as the ones we are working with today (just for a different panel). 
 
 ```{r}
+#| eval: FALSE
 UnmixedFiles <- file.path("course", "08_WaysToGate", "data")
 UnmixedFCS <- list.files(UnmixedFiles, pattern=".fcs", full.names=TRUE)
 UnmixedExample <- flowCore::read.FCS(UnmixedFCS[1])
@@ -2385,10 +2386,14 @@ UnmixedExample
 ```
 
 ```{r}
+#| eval: FALSE
 flowCore::parameters(UnmixedExample)@data
 ```
 
+![](images/AuroraUnmixedExampleParameters.png)
+
 ```{r}
+#| eval: FALSE
 flowCore::keyword(UnmixedExample)[260:310]
 ```
 

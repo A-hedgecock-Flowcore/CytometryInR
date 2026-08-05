@@ -24,6 +24,7 @@ project:
     - 11_*
     - 12_*
     - 13_*
+    - 14_*
     - course/community/**/*.qmd
     - course/SDY3080/ImmPort.qmd
     - course/SDY3080/ImmPort_slides.qmd
