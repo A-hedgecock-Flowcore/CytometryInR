@@ -126,6 +126,8 @@ website:
       contents: 
       - text: "Concatenate - Extended Cut"
         href: course/10_Downsampling/concatenate.qmd  
+      - text: "Unmixing - Extended Cut"
+        href: course/14_Unmixing/unmixing.qmd
     - section: "Spectral Flow Cytometry"
       contents:
         - text: "Retrieving ImmPort data"
