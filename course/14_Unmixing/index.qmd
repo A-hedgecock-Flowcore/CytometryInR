@@ -2377,24 +2377,32 @@ Until then, cheers! We are now half way through the original conception of our c
 
 # Additional Resources
 
-[Hello]()
+[Mathematics of spectral unmixing │Peter Mage │ Babraham Institute Spectral Symposium 2022](https://youtu.be/GozDzpuu3Ok?si=lpO3W6GQ84qPH6Lo)
 
-[Hello]()
+[CytoBytes: Spectral cytometry have you feeling all mixed up? Let's get unmixed!](https://youtu.be/kqc700kBtHg?si=XnAwe4pE3wVd9l48)
 
-[Hello]()
+[ChUG Cytometry Presents: Introduction to Spectral Unmixing](https://www.youtube.com/live/PbJXMBpaoQk?si=wm5TZbn6CZviKbrE)
+
+[A comparison of spectral unmixing to conventional compensation for the calculation of fluorochrome abundances from flow cytometric data](https://onlinelibrary.wiley.com/doi/10.1002/cyto.a.24669)
+
+[Generalized unmixing model for multispectral flow cytometry utilizing nonsquare compensation matrices](https://onlinelibrary.wiley.com/doi/10.1002/cyto.a.22272)
+
+
 
 # Take-home Problems
 
 :::{.callout-tip title="Problem 1"}
-Today
+Modify `OldFashionedUnmix()`'s returnType argument to instead of returning a ".fcs" file or a "residual" plot, to also returned the Unmixed data.frame, as well as the flowFrame (since both can be useful!). Add any conditional statements or arguments as you deem necessary. 
 :::
 
 :::{.callout-tip title="Problem 2"}
-Today
+We briefly looked at the residual plots, including a case where we left out BUV805 CD4 and saw corresponding increase on those detectors in the residual plot. Rerun this example with a signature matrix missing one of the fluorophores, selecting returnType = "residual" to get back the residual plot. At this point, rerun with returnType = "fcs", and generate a badly unmixed .fcs file. Then repeat this process with a signature matrix that contains all the signature references. Visualizing the two .fcs files, which fluorophores ended up having messed up unmixing due to the exclusion, and which ones were mostly unaffected?
 :::
 
 :::{.callout-tip title="Problem 3"}
-Today
+One of the first packages that I encountered that implemented unmixing in R was Christopher Hall's [flowUnmix](https://github.com/hally166/flowUnmix) package. Since, several additional R packages have also implemented ways to unmix using various methods.  While how they process their unmixing controls to get their signature matrices often vary wildly, at the heart the basic unmixing steps are similar, with choice of unmixing method often just needing to swtich out `lsfit()` for another function that implements the other method. Since you may be interested in implementing one of these methods on your own in the future, lets go on a treasure hunt. 
+
+For these 2 packages ([flowUnmix](https://github.com/hally166/flowUnmix/tree/main/R), and [Autospectral](https://github.com/DrCytometer/AutoSpectral/tree/master/R)), dive into their GitHub repositories and open their R folder. Check the .R files for any with an "unmixing-something-or-order" style name and examine it. Try reading your way through the code until you encounter the function that actually carries out the unmixing. Look up that functions original package, and check the help file. Take a screenshot, and report back. Feel free to repeat for any unmixing methods of interest (OLS, NNLS, WLS, etc.) 
 :::
 
 ::: {style="text-align: right;"}
