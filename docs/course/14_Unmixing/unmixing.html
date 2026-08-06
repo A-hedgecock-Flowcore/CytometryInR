@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="David Rach">
-<meta name="dcterms.date" content="2026-08-04">
+<meta name="dcterms.date" content="2026-08-05">
 
 <title>Walk-through: Unmixing – Cytometry in R</title>
 <style>
@@ -361,6 +361,12 @@ gtag('config', 'G-LZ35J3XE4D', { 'anonymize_ip': true});
  <span class="menu-text">13 - Spectral Similarities</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../course/14_Unmixing/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14 - Unmixing in R</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -507,7 +513,7 @@ gtag('config', 'G-LZ35J3XE4D', { 'anonymize_ip': true});
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 4, 2026</p>
+      <p class="date">August 5, 2026</p>
     </div>
   </div>
   
@@ -531,12 +537,12 @@ gtag('config', 'G-LZ35J3XE4D', { 'anonymize_ip': true});
 <h1>Background</h1>
 <section id="rationale" class="level2">
 <h2 class="anchored" data-anchor-id="rationale">Rationale</h2>
-<p>This walk-through is an extension of the <a href="../../course/14_Unmixing/index.qmd">Week 14</a> lesson, documenting how the <code>UnmixingInternals()</code> function was cobbled together from start to finish. This walk-through is optional, and has been separated out from the main <a href="../../course/14_Unmixing/index.qmd">Unmixing</a> lesson in a desire to avoid burning out those who would rather not know the tiny details of how to reformat the <a href="../../course/03_InsideFCSFile/index.html">flowFrame internals</a> to convert from a raw to an unmixed .fcs file.</p>
+<p>This walk-through is an extension of the <a href="../../course/14_Unmixing/index.html">Week 14</a> lesson, documenting how the <code>UnmixingInternals()</code> function was cobbled together from start to finish. This walk-through is optional, and has been separated out from the main <a href="../../course/14_Unmixing/index.html">Unmixing</a> lesson in a desire to avoid burning out those who would rather not know the tiny details of how to reformat the <a href="../../course/03_InsideFCSFile/index.html">flowFrame internals</a> to convert from a raw to an unmixed .fcs file.</p>
 <p>However, if <a href="../../course/10_Downsampling/concatenate.html">deep-diving</a> how .fcs file internals are formatted in R is your thing, then this walk-through is definitely for you, so feel free to continue reading :D</p>
 </section>
 <section id="journey-thus-far" class="level2">
 <h2 class="anchored" data-anchor-id="journey-thus-far">Journey Thus Far</h2>
-<p>At this point in the <a href="../../course/14_Unmixing/index.qmd">Week 14</a> lesson, our <code>OldFashionedUnmixing()</code> function is fairly far along, taking as inputs a file.path to our raw full-stained .fcs file, and also a <a href="">signature matrix</a>, and currently returning as an output a data.frame containing the newly unmixed fluorophore columns.</p>
+<p>At this point in the <a href="../../course/14_Unmixing/index.html">Week 14</a> lesson, our <code>OldFashionedUnmixing()</code> function is fairly far along, taking as inputs a file.path to our raw full-stained .fcs file, and also a <a href="">signature matrix</a>, and currently returning as an output a data.frame containing the newly unmixed fluorophore columns.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -5183,7 +5189,7 @@ $P40           AF-A             4194304      -111   4192506
 <section id="take-away" class="level1">
 <h1>Take Away</h1>
 <p>In this bonus-walkthrough, we took our unmixed fluorophore outputs, and figured out how to modify the original raw .fcs file to remove the no longer needed elements related to the detector columns, reformat those elements that were retained, and then add in new elements related to each of the new fluorophores. This resulted in the creation of a new .fcs file that matched the typical formatting of an unmixed .fcs file.</p>
-<p>To return to the main unmixing walk-through, click <a href="../../course/14_Unmixing/index.qmd#internal-extravaganza">here</a></p>
+<p>To return to the main unmixing walk-through, click <a href="../../course/14_Unmixing/index.html#internal-extravaganza">here</a></p>
 <p><img src="images/TakeAway2.jpg" class="img-fluid"></p>
 <div style="text-align: right;">
 <p><a href="https://www.gnu.org/licenses/agpl-3.0.en.html"><img src="https://www.gnu.org/graphics/agplv3-with-text-162x68.png" class="img-fluid" alt="AGPL-3.0"></a> <a href="http://creativecommons.org/licenses/by-sa/4.0/"><img src="https://licensebuttons.net/l/by-sa/4.0/88x31.png" class="img-fluid" alt="CC BY-SA 4.0"></a></p>

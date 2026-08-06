@@ -119,6 +119,8 @@ website:
         href: course/12_SpectralSignatures/index.qmd
       - text: "13 - Spectral Similarities"
         href: course/13_SpectralSimilarities/index.qmd
+      - text: "14 - Unmixing in R"
+        href: course/14_Unmixing/index.qmd
     - section: "Beyond the Sandbox"
       href: Schedule.qmd
     - section: "The World is your Oyster"
